@@ -1,4 +1,4 @@
-[index (17).html](https://github.com/user-attachments/files/33837230/index.17.html)
+[Uploading index (18).html…]()
 <!doctype html>
 <html lang="et">
 <head>
@@ -9,7 +9,7 @@
 <meta http-equiv="Expires" content="0">
 <title>Kiire Kokk VR</title>
 <script>
-window.GAME_VERSION = 'kk1';
+window.GAME_VERSION = 'kk2';
 (function(){
   try {
     fetch(location.pathname + '?nocache=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.text(); }).then(function(t){
@@ -28,7 +28,7 @@ window.GAME_VERSION = 'kk1';
 </head>
 <body>
 <div id="info">
-  <b>🍔 KIIRE KOKK VR</b> <span style="opacity:.6">(kk1)</span><br>
+  <b>🍔 KIIRE KOKK VR</b> <span style="opacity:.6">(kk2)</span><br>
   Questis: vajuta all <b>ENTER VR</b> – mängi pultide või paljaste kätega.<br>
   Arvutis: <b>klõps</b> = võta / pane maha, <b>parem klõps</b> = viska, <b>A/D</b> = pööra, <b>W/S</b> = vaata üles/alla, <b>Esc</b> = paus.
 </div>
@@ -124,6 +124,7 @@ counterBox(-0.9, 0.9, -0.95, -0.32, CT);                 // põhilett
 counterBox(-1.5, -0.9, -0.95, 0.55, CT);                 // vasak tiib
 counterBox(0.9, 1.5, -0.95, 0.55, CT);                   // parem tiib
 counterBox(-0.95, 0.95, -1.32, -0.98, PASS_Y, M.steel, M.pink);   // väljaandmislett
+counterBox(-1.05, 1.05, 0.95, 1.45, CT);                // tagumine lett (avatavad toidud)
 SURF.push([-3, 3, -3, 2, 0]);                            // põrand
 // grill
 const grill = new THREE.Group(); grill.position.set(-0.52, CT, -0.66); K.add(grill);
@@ -221,6 +222,7 @@ function updateParticles(dt){ for (let i = 0; i < PN; i++) { if (pLife[i] <= 0) 
 const LAYER_H = { bunB: 0.03, patty: 0.022, cheese: 0.007, lettuce: 0.012, tomato: 0.012, bunT: 0.04 };
 const NAMES = { bunB: 'Põhjakukkel', bunT: 'Kaanekukkel', patty: 'Kotlet', cheese: 'Juust', lettuce: 'Salat', tomato: 'Tomat' };
 const items = [];
+const SAUS = { raw: new THREE.Color(0xf48fb1), done: new THREE.Color(0xb5442a), burnt: new THREE.Color(0x2b1a12) };
 const COLR = { raw: new THREE.Color(0xe57373), done: new THREE.Color(0x7a4a2e), burnt: new THREE.Color(0x1d1d1d), fryRaw: new THREE.Color(0xfff3c4), fryDone: new THREE.Color(0xf5b82e), fryBurnt: new THREE.Color(0x5a3a12) };
 function makeItemMesh(type, extra = {}){
   const g = new THREE.Group(); let r = 0.06, hh = 0.015;
@@ -235,49 +237,67 @@ function makeItemMesh(type, extra = {}){
   else if (type === 'fries') { mesh(cyl(0.045, 0.03, 0.08, 4), std(0xe63946), 0, 0, 0, g).rotation.y = Math.PI / 4; g.userData.sticks = []; for (let i = 0; i < 11; i++) { const s = mesh(box(0.009, 0.08, 0.009), std(0xfff3c4, { roughness: 0.7 }), rand(-0.022, 0.022), 0.04 + rand(0, 0.02), rand(-0.022, 0.022), g, false); s.rotation.set(rand(-0.25, 0.25), 0, rand(-0.25, 0.25)); g.userData.sticks.push(s); } hh = 0.04; r = 0.05; }
   else if (type === 'cup') { mesh(cyl(0.037, 0.03, 0.11, 20, ), std(0xffffff), 0, 0, 0, g); g.userData.band = mesh(cyl(0.0375, 0.035, 0.03, 20), std(0xff8fab), 0, 0.01, 0, g, false); g.userData.lid = mesh(cyl(0.039, 0.039, 0.008, 20), std(0xffffff, { transparent: true, opacity: 0.9 }), 0, 0.058, 0, g); g.userData.lid.visible = false; g.userData.straw = mesh(cyl(0.004, 0.004, 0.09), std(0xe63946), 0.01, 0.09, 0, g, false); g.userData.straw.visible = false; hh = 0.055; r = 0.045; }
   else if (type === 'ext') { mesh(cyl(0.04, 0.04, 0.26, 18), M.red, 0, 0, 0, g); mesh(cyl(0.012, 0.012, 0.05), M.black, 0, 0.15, 0, g); const n = mesh(cyl(0.008, 0.012, 0.09), M.black, 0, 0.17, -0.04, g); n.rotation.x = Math.PI / 2; g.userData.nozzle = new THREE.Object3D(); g.userData.nozzle.position.set(0, 0.2, 0); g.add(g.userData.nozzle); hh = 0.13; r = 0.05; }
+  else if (type === 'hdBun') { const b = mesh(new THREE.CapsuleGeometry(0.032, 0.12, 6, 12).rotateZ(Math.PI / 2), std(0xe0a65a), 0, 0, 0, g); b.scale.set(1, 0.75, 1); mesh(box(0.13, 0.012, 0.02), std(0xf5deb3), 0, 0.022, 0, g, false); hh = 0.025; r = 0.09; }
+  else if (type === 'sausage') { g.userData.m = mesh(new THREE.CapsuleGeometry(0.016, 0.13, 6, 10).rotateZ(Math.PI / 2), std(0xf48fb1, { roughness: 0.5 }), 0, 0, 0, g); hh = 0.016; r = 0.08; }
+  else if (type === 'cone') { mesh(new THREE.ConeGeometry(0.035, 0.11, 16).rotateX(Math.PI), std(0xd9a55b), 0, 0, 0, g); g.userData.scoop = mesh(new THREE.SphereGeometry(0.038, 16, 12), std(0xffffff), 0, 0.065, 0, g); g.userData.scoop.visible = false; hh = 0.055; r = 0.04; }
+  else if (type === 'donut') { const col = extra.flavor ? extra.flavor.c : 0xff8fab; mesh(new THREE.TorusGeometry(0.035, 0.018, 12, 24).rotateX(Math.PI / 2), std(0xd99549), 0, 0, 0, g); const ic = mesh(new THREE.TorusGeometry(0.035, 0.016, 10, 24).rotateX(Math.PI / 2), std(col), 0, 0.006, 0, g); ic.scale.y = 0.6; for (let i = 0; i < 8; i++) { const a = i * 0.8; mesh(box(0.008, 0.003, 0.003), std(pick([0xffffff, 0x4fd1ff, 0xffe14f])), Math.cos(a) * 0.035, 0.016, Math.sin(a) * 0.035, g, false).rotation.y = a; } hh = 0.018; r = 0.055; }
   else if (type === 'duck') { mesh(new THREE.SphereGeometry(0.045, 16, 12), std(0xffe14f), 0, 0, 0, g).scale.set(1.2, 0.85, 1); mesh(new THREE.SphereGeometry(0.03, 14, 10), std(0xffe14f), 0.035, 0.04, 0, g); mesh(new THREE.ConeGeometry(0.012, 0.03, 8), std(0xff8c1a), 0.07, 0.04, 0, g).rotation.z = -Math.PI / 2; for (const z of [-0.012, 0.012]) mesh(new THREE.SphereGeometry(0.005, 6, 4), M.black, 0.055, 0.05, z, g, false); hh = 0.04; }
   g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
   return { g, r, hh };
 }
 function newItem(type, pos, extra = {}){
   const { g, r, hh } = makeItemMesh(type, extra); scene.add(g); g.position.copy(pos);
-  const it = Object.assign({ type, g, r, hh, vel: V3(), held: null, rest: false, slot: null, cook: 0, state: type === 'patty' || type === 'friesRaw' ? 'raw' : 'ok', stack: [], age: 0, flavor: null, onPlate: null }, extra);
+  const it = Object.assign({ type, g, r, hh, vel: V3(), held: null, rest: false, slot: null, cook: 0, state: type === 'patty' || type === 'friesRaw' || type === 'sausage' ? 'raw' : 'ok', stack: [], age: 0, flavor: null, onPlate: null }, extra);
   g.userData.item = it; items.push(it); return it;
 }
 function removeItem(it){ if (it.slot) freeSlot(it); it.g.removeFromParent(); const i = items.indexOf(it); if (i >= 0) items.splice(i, 1); for (const s of it.stack) removeItem(s); }
 // küpsetamise välimus
 function setCookLook(it){
+  if (it.type === 'sausage') { const m = it.g.userData.m.material; if (it.state === 'raw') m.color.copy(SAUS.raw).lerp(SAUS.done, clamp(it.cook / cookT(), 0, 1)); else if (it.state === 'done') m.color.copy(SAUS.done).lerp(SAUS.burnt, clamp((it.cook - cookT()) / (burnT() - cookT()), 0, 1) * 0.5); else m.color.copy(SAUS.burnt); }
   if (it.type === 'patty') { const m = it.g.userData.m.material; const k = it.cook; if (it.state === 'raw') m.color.copy(COLR.raw).lerp(COLR.done, clamp(k / cookT(), 0, 1)); else if (it.state === 'done') m.color.copy(COLR.done).lerp(COLR.burnt, clamp((k - cookT()) / (burnT() - cookT()), 0, 1) * 0.5); else m.color.copy(COLR.burnt); }
   if (it.type === 'fries') { const c = it.state === 'burnt' ? COLR.fryBurnt : COLR.fryDone; it.g.userData.sticks.forEach(s => s.material.color.copy(c)); }
 }
 // jaoturid (lõputud kastid)
 const DISP = [];
-function dispenser(type, x, z, label, col){
-  const g = new THREE.Group(); g.position.set(x, CT, z); K.add(g);
+function dispenser(type, x, z, label, col, rotY = 0, lock = null, extra = {}){
+  const g = new THREE.Group(); g.position.set(x, CT, z); g.rotation.y = rotY; K.add(g);
   mesh(box(0.2, 0.08, 0.2), std(col), 0, 0.04, 0, g); mesh(box(0.18, 0.005, 0.18), std(0x333333), 0, 0.075, 0, g, false);
-  const show = makeItemMesh(type).g; show.position.set(0, 0.095, 0); show.scale.setScalar(0.9); g.add(show);
-  if (type !== 'plate' && type !== 'cup') { const s2 = makeItemMesh(type).g; s2.position.set(0.03, 0.1 + 0.015, -0.02); s2.rotation.y = 1; s2.scale.setScalar(0.85); g.add(s2); }
+  const show = makeItemMesh(type, extra).g; show.position.set(0, 0.095, 0); show.scale.setScalar(0.9); g.add(show);
+  if (type !== 'plate' && type !== 'cup' && type !== 'cone') { const s2 = makeItemMesh(type, extra).g; s2.position.set(0.03, 0.1 + 0.015, -0.02); s2.rotation.y = 1; s2.scale.setScalar(0.85); g.add(s2); }
   const lab = mesh(new THREE.PlaneGeometry(0.2, 0.05), new THREE.MeshBasicMaterial({ map: canvasTex(320, 80, (c, W, H) => { roundRect(c, 2, 2, W - 4, H - 4, 18); c.fillStyle = '#fff'; c.fill(); c.font = `bold ${H * 0.5}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#333'; c.fillText(label, W / 2, H / 2 + 2); }), transparent: true }), 0, 0.04, 0.101, g, false);
-  const d = { type, g, pos: () => g.getWorldPosition(V3()).add(V3(0, 0.1, 0)) }; DISP.push(d); return d;
+  const d = { type, g, lock, extra, pos: () => g.getWorldPosition(V3()).add(V3(0, 0.1, 0)) }; DISP.push(d); return d;
 }
 dispenser('bunB', -1.2, 0.3, 'Põhjakukkel', 0xe8c39e); dispenser('bunT', -1.2, 0.05, 'Kaanekukkel', 0xe8c39e);
 dispenser('patty', -1.2, -0.21, '🥩 Kotlet', 0xffb3b3); dispenser('cheese', -1.2, -0.45, '🧀 Juust', 0xffe29a);
 dispenser('lettuce', -1.2, -0.68, '🥬 Salat', 0xbfe8a8); dispenser('tomato', -1.2, -0.88, '🍅 Tomat', 0xffb3b3);
 dispenser('plate', 0.0, -0.84, '🍽️ Taldrik', 0xd7e9f7);
 dispenser('friesRaw', 1.2, 0.3, '❄️ Friikad', 0xbfe3ff); dispenser('cup', 1.2, 0.05, '🥤 Topsid', 0xffd6e2);
+// tagumine lett: avatavad toidud
+const DONUTS = [{ n: 'Roosa', c: 0xff8fab, e: '🩷' }, { n: 'Šokolaad', c: 0x5d3a1a, e: '🟤' }];
+const ICES = [{ n: 'Vanill', c: 0xfff3c4, e: '🤍' }, { n: 'Maasikas', c: 0xff8fab, e: '🩷' }, { n: 'Šokolaad', c: 0x6d4c41, e: '🟤' }];
+dispenser('hdBun', -0.85, 1.2, '🌭 Kukkel', 0xe8c39e, Math.PI, 'hotdog'); dispenser('sausage', -0.6, 1.2, '🌭 Vorst', 0xffb3b3, Math.PI, 'hotdog');
+dispenser('donut', -0.3, 1.2, '🍩 Roosa', 0xffd6e2, Math.PI, 'donut', { flavor: DONUTS[0] }); dispenser('donut', -0.06, 1.2, '🍩 Šokolaad', 0xe0c7b0, Math.PI, 'donut', { flavor: DONUTS[1] });
+dispenser('cone', 0.18, 1.2, '🍦 Vahvlid', 0xf3dcb0, Math.PI, 'ice');
+const iceM = new THREE.Group(); iceM.position.set(0.62, CT, 1.25); iceM.rotation.y = Math.PI; K.add(iceM);
+mesh(box(0.62, 0.5, 0.2), std(0x9be7ff), 0, 0.42, 0.06, iceM); mesh(box(0.62, 0.06, 0.24), std(0xffffff), 0, 0.68, 0.04, iceM);
+mesh(new THREE.PlaneGeometry(0.4, 0.1), new THREE.MeshBasicMaterial({ map: canvasTex(400, 100, (c, W, H) => { c.font = `bold ${H * 0.6}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#e63946'; c.fillText('🍦 JÄÄTIS', W / 2, H / 2); }), transparent: true }), 0, 0.6, -0.042, iceM, false);
+mesh(box(0.6, 0.01, 0.16), M.darkSteel, 0, 0.005, -0.12, iceM);
+const iceTaps = ICES.map((f, i) => { const x = -0.2 + i * 0.2; mesh(cyl(0.02, 0.012, 0.06), M.steel, x, 0.16, -0.08, iceM); const b = mesh(box(0.06, 0.05, 0.03), std(f.c, { emissive: f.c, emissiveIntensity: 0.25 }), x, 0.3, -0.055, iceM); return { ice: true, x, btn: b, f, i }; });
+const lockSign = mesh(new THREE.PlaneGeometry(0.9, 0.18), new THREE.MeshBasicMaterial({ map: canvasTex(900, 180, (c, W, H) => { roundRect(c, 4, 4, W - 8, H - 8, 40); c.fillStyle = '#fffaf3'; c.fill(); c.lineWidth = 8; c.strokeStyle = '#ff8fab'; c.stroke(); c.font = `bold ${H * 0.36}px ${FONT}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#3d2c3e'; c.fillText('🔒 Uued toidud – ava poes! 🌭🍦🍩', W / 2, H / 2); }), transparent: true }), 0, CT + 0.35, 1.25, K, false); lockSign.rotation.y = Math.PI;
 // tööriistad: tulekustuti, kummipart
 let extItem = null, duckItem = null;
 
 /* ---------- pesad: grill, fritüür, kraanid ---------- */
 const SLOTS = [];
 function addSlot(kind, x, y, z, accepts){ const s = { kind, pos: V3(x, y, z), item: null, accepts, fire: 0 }; SLOTS.push(s); return s; }
-for (const sx of [-0.66, -0.4]) for (const sz of [-0.55, -0.77]) addSlot('grill', sx, CT + 0.058, sz, it => it.type === 'patty');
+for (const sx of [-0.66, -0.4]) for (const sz of [-0.55, -0.77]) addSlot('grill', sx, CT + 0.058, sz, it => it.type === 'patty' || it.type === 'sausage');
 for (const sx of [0.48, 0.72]) addSlot('fryer', sx, CT + 0.12, -0.66, it => it.type === 'friesRaw');
+iceTaps.forEach(t => { t.slot = addSlot('icetap', 0.62 - t.x, CT + 0.06, 1.25 + 0.12, it => it.type === 'cone' && !it.flavor); t.slot.tap = t; });
 taps.forEach(t => { t.slot = addSlot('tap', 1.36 - 0.13, CT + 0.012, -0.45 + t.z, it => it.type === 'cup' && !it.flavor); t.slot.tap = t; });
 function slotWorld(s){ return K.localToWorld(s.pos.clone()); }
 function putInSlot(it, s){ s.item = it; it.slot = s; it.rest = true; it.vel.set(0, 0, 0); it.g.position.copy(slotWorld(s)).add(V3(0, it.hh, 0)); it.g.rotation.set(0, 0, 0); if (s.kind === 'fryer') { it.g.position.y -= 0.03; } }
 function freeSlot(it){ if (it.slot) { it.slot.item = null; it.slot = null; } }
-const up = Object.assign({ grill: false, fryer: false, calm: false, disco: false, decor: false, cat: false }, (store('kk_save') || {}).up || {});
+const up = Object.assign({ grill: false, fryer: false, calm: false, disco: false, decor: false, cat: false, hotdog: false, ice: false, donut: false }, (store('kk_save') || {}).up || {});
 const cookT = () => (diff().id === 0 ? 7 : 6) * (up.grill ? 0.6 : 1), burnT = () => diff().burn ? cookT() + (diff().id === 1 ? 14 : 9) : Infinity, fireT = () => burnT() + 8;
 const fryT = () => 5 * (up.fryer ? 0.6 : 1);
 
@@ -378,6 +398,9 @@ function pop(pos, s, col = '#e63946'){ const o = pops[popI = (popI + 1) % pops.l
 const endG = new THREE.Group(); endG.visible = false; scene.add(endG);
 const endP = new Panel(1.4, 1.05); endG.add(endP.mesh);
 const SHOP = [
+  { k: 'hotdog', n: '🌭 Hotdog', d: 'vorst grillile → kuklisse', p: 20 },
+  { k: 'ice', n: '🍦 Jäätis', d: 'jäätisemasin, 3 maitset', p: 25 },
+  { k: 'donut', n: '🍩 Sõõrikud', d: 'võta lauast ja serveeri', p: 15 },
   { k: 'grill', n: '🔥 Turbogrill', d: 'kotletid valmivad 40% kiiremini', p: 30 },
   { k: 'fryer', n: '🍟 Kiirfritüür', d: 'friikad valmivad 40% kiiremini', p: 30 },
   { k: 'calm', n: '😊 Rahulik muusika', d: 'kliendid on 35% kannatlikumad', p: 40 },
@@ -385,9 +408,9 @@ const SHOP = [
   { k: 'cat', n: '🐱 Köögikass', d: 'silita teda – ta nurrub 😻', p: 25 },
   { k: 'decor', n: '🌴 Kaunistused', d: 'taimed, lilled, tuled', p: 15 }
 ];
-const shopBtns = SHOP.map((s, i) => makeButton(endG, 0.42, 0.13, -0.44 + (i % 3) * 0.44, -0.08 - Math.floor(i / 3) * 0.15, s.n, () => buy(s), '#4ecdc4'));
-const nextBtn = makeButton(endG, 0.46, 0.12, -0.24, -0.41, '▶ Järgmine päev', () => startDay(), '#e63946');
-makeButton(endG, 0.38, 0.12, 0.25, -0.41, '🏠 Menüü', () => goMenu(), '#9b5de5');
+const shopBtns = SHOP.map((s, i) => makeButton(endG, 0.42, 0.12, -0.44 + (i % 3) * 0.44, 0.03 - Math.floor(i / 3) * 0.135, s.n, () => buy(s), '#4ecdc4'));
+const nextBtn = makeButton(endG, 0.46, 0.11, -0.24, -0.44, '▶ Järgmine päev', () => startDay(), '#e63946');
+makeButton(endG, 0.38, 0.11, 0.25, -0.44, '🏠 Menüü', () => goMenu(), '#9b5de5');
 let lastSummary = null;
 function buy(s){ if (up[s.k]) { showToast('See on juba olemas ✔', '#4ecdc4', 1.5); return; } if (save.coins < s.p) { sfx.wrong(); showToast(`Vaja ${s.p} 🪙 – sul on ${save.coins}`, '#e63946', 1.6); return; } save.coins -= s.p; up[s.k] = true; persist(); applyUpgrades(); sfx.coin(); sfx.happy(); showToast(`Ostetud: ${s.n}! 🎉`, '#4ecdc4', 2); drawEnd(); }
 function drawEnd(){
@@ -397,7 +420,7 @@ function drawEnd(){
     txt(c, r.ok ? `🎉 PÄEV ${r.day} LÄBI!` : `📅 PÄEV ${r.day} LÄBI`, W / 2, H * 0.09, H * 0.075, '#e63946', '900');
     txt(c, '⭐'.repeat(r.stars) + '☆'.repeat(3 - r.stars), W / 2, H * 0.19, H * 0.07, '#ffb347');
     txt(c, `🪙 Teenisid ${r.earned} (eesmärk ${r.goal})   •   😀 ${r.served} rahul   •   😠 ${r.angry} pahane`, W / 2, H * 0.28, H * 0.034);
-    txt(c, `Rahakotis 🪙 ${save.coins}   •   🛒 Uuendused:`, W / 2, H * 0.36, H * 0.032, '#6b5a6e', 'normal');
+    txt(c, `Rahakotis 🪙 ${save.coins}   •   🛒 Pood – uued toidud ja uuendused:`, W / 2, H * 0.355, H * 0.032, '#6b5a6e', 'normal');
   });
   shopBtns.forEach((b, i) => { const s = SHOP[i]; b.sel = !!up[s.k]; b.sub = up[s.k] ? '✔ olemas' : `🪙 ${s.p} • ${s.d}`; b.col = up[s.k] ? '#4ecdc4' : save.coins >= s.p ? '#ff8fab' : '#bbbbbb'; b.draw(); });
 }
@@ -425,7 +448,7 @@ const cat = new THREE.Group(); K.add(cat);
   mesh(new THREE.SphereGeometry(0.008, 6, 4), std(0xff8fab), 0.065, -0.005, 0, hd, false);
   const tail = mesh(cyl(0.012, 0.008, 0.16), fur, -0.15, 0.15, 0, cat); tail.rotation.z = 0.6; cat.userData = { tail, hd, t: 0, x: 0, dir: 1, petT: 0 };
   for (const [x, z] of [[0.07, 0.035], [0.07, -0.035], [-0.07, 0.035], [-0.07, -0.035]]) mesh(cyl(0.015, 0.015, 0.06), fur, x, 0.03, z, cat); }
-function applyUpgrades(){ decorG.visible = !!up.decor; disco.visible = !!up.disco; cat.visible = !!up.cat; discoLights.forEach(l => l.intensity = 0); }
+function applyUpgrades(){ DISP.forEach(d => { if (d.lock) d.g.visible = !!up[d.lock]; }); iceM.visible = !!up.ice; lockSign.visible = !(up.hotdog || up.ice || up.donut); decorG.visible = !!up.decor; disco.visible = !!up.disco; cat.visible = !!up.cat; discoLights.forEach(l => l.intensity = 0); }
 applyUpgrades();
 
 /* =========================================================
@@ -445,18 +468,20 @@ const hands = [0, 1].map(i => {
   const holder = new THREE.Group(); holder.position.set(0, -0.02, -0.06); grip.add(holder);
   const ray = new THREE.Mesh(new THREE.CylinderGeometry(0.002, 0.002, 1, 6).translate(0, -0.5, 0).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xff8fab, transparent: true, opacity: 0.7 }));
   ray.visible = false; ctrl.add(ray);
-  const h = { i, kind: 'xr', ctrl, grip, hand, hm, glove, holder, ray, side: null, isHand: false, connected: false, held: null, vel: V3(), prev: V3(), hasPrev: false, hover: null, poke: null, gp: null, colored: false };
+  const handHolder = new THREE.Group(); scene.add(handHolder);
+  const marker = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.006, 8, 32).rotateX(Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffd166, transparent: true, opacity: 0.85, depthTest: false })); marker.renderOrder = 20; marker.visible = false; scene.add(marker);
+  const h = { i, kind: 'xr', ctrl, grip, hand, hm, glove, holder, handHolder, marker, gClosed: false, ray, side: null, isHand: false, connected: false, held: null, vel: V3(), prev: V3(), hasPrev: false, hover: null, poke: null, gp: null, colored: false };
   ctrl.addEventListener('connected', e => { h.connected = true; h.side = e.data.handedness; h.isHand = !!e.data.hand; h.gp = e.data.gamepad; glove.visible = !h.isHand; h.colored = false; });
   ctrl.addEventListener('disconnected', () => { if (h.held) release(h); h.connected = false; });
   ctrl.addEventListener('selectstart', () => { audioInit(); grabStart(h); });
-  ctrl.addEventListener('selectend', () => { if (h.held && h.isHand) release(h); else if (h.held && h.bySelect) release(h); });
+  ctrl.addEventListener('selectend', () => { if (h.held && !h.isHand && h.bySelect) release(h); });
   ctrl.addEventListener('squeezestart', () => { audioInit(); if (!h.held) { h.bySelect = false; grabStart(h, true); } });
   ctrl.addEventListener('squeezeend', () => { if (h.held && !h.bySelect) release(h); });
   return h;
 });
 function handPoint(h, out){
   if (h.kind === 'mouse') return h.holder.getWorldPosition(out);
-  if (h.isHand && h.hand.joints) { const a = h.hand.joints['index-finger-tip'], b = h.hand.joints['thumb-tip']; if (a && b) { a.getWorldPosition(out); b.getWorldPosition(tmpV2); return out.add(tmpV2).multiplyScalar(0.5); } }
+  if (h.isHand && h.hand.joints) return h.handHolder.getWorldPosition(out);
   return h.holder.getWorldPosition(out);
 }
 function pulse(h, s = 0.5, ms = 50){ try { const gp = h.gp; if (gp && gp.hapticActuators && gp.hapticActuators[0]) gp.hapticActuators[0].pulse(s, ms); } catch (e) {} }
@@ -481,14 +506,14 @@ addEventListener('keyup', e => keys[e.code] = false);
 /* ---------- võtmine ---------- */
 function grabbables(){ return items.filter(it => !it.held && !it.onPlate && !(it.mat)); }
 function nearestItem(p, r){ let best = null, bd = r; for (const it of grabbables()) { const d = it.g.getWorldPosition(tmpV).distanceTo(p); if (d < bd) { bd = d; best = it; } } return best; }
-function nearestDisp(p, r){ let best = null, bd = r; for (const d of DISP) { const dd = d.pos().distanceTo(p); if (dd < bd) { bd = dd; best = d; } } return best; }
+function nearestDisp(p, r){ let best = null, bd = r; for (const d of DISP) { if (!d.g.visible) continue; const dd = d.pos().distanceTo(p); if (dd < bd) { bd = dd; best = d; } } return best; }
 function rayPick(h){
   if (h.kind === 'mouse') raycaster.setFromCamera(mouseNDC, camera);
   else { h.ctrl.getWorldPosition(tmpV); h.ctrl.getWorldQuaternion(tmpQ); raycaster.set(tmpV, tmpD.set(0, 0, -1).applyQuaternion(tmpQ)); }
   raycaster.far = 4;
-  const objs = []; for (const it of grabbables()) objs.push(it.g); for (const d of DISP) objs.push(d.g); objs.push(bell); for (const t of taps) objs.push(t.btn); if (cat.visible) objs.push(cat);
+  const objs = []; for (const it of grabbables()) objs.push(it.g); for (const d of DISP) if (d.g.visible) objs.push(d.g); objs.push(bell); for (const t of taps) objs.push(t.btn); if (up.ice) for (const t of iceTaps) objs.push(t.btn); if (cat.visible) objs.push(cat);
   const hit = raycaster.intersectObjects(objs, true)[0]; if (!hit) return null;
-  let o = hit.object; while (o) { if (o.userData.item) return { item: o.userData.item }; const d = DISP.find(d => d.g === o); if (d) return { disp: d }; if (o === bell) return { bell: true }; const t = taps.find(t => t.btn === o); if (t) return { tap: t }; if (o === cat) return { cat: true }; o = o.parent; }
+  let o = hit.object; while (o) { if (o.userData.item) return { item: o.userData.item }; const d = DISP.find(d => d.g === o); if (d) return { disp: d }; if (o === bell) return { bell: true }; const t = taps.find(t => t.btn === o) || iceTaps.find(t => t.btn === o); if (t) return { tap: t }; if (o === cat) return { cat: true }; o = o.parent; }
   return null;
 }
 function grabStart(h, bySqueeze = false){
@@ -496,8 +521,9 @@ function grabStart(h, bySqueeze = false){
   if (mode !== 'play' || h.held) return;
   h.bySelect = !bySqueeze;
   const p = handPoint(h, V3());
-  // lähedalt
-  if (h.kind === 'xr') {
+  // lähedalt (päris käed haaravad žestiga, vt handGesture)
+  if (h.kind === 'xr' && h.isHand) { if (nearTarget(p)) return; }
+  else if (h.kind === 'xr') {
     if (pressNear(p, h)) return;
     const it = nearestItem(p, 0.13); if (it) { grab(h, it); return; }
     const d = nearestDisp(p, 0.16); if (d) { grab(h, spawnFrom(d, p)); return; }
@@ -506,18 +532,36 @@ function grabStart(h, bySqueeze = false){
   const r = rayPick(h); if (!r) return;
   if (r.item) grab(h, r.item); else if (r.disp) grab(h, spawnFrom(r.disp, p)); else if (r.bell) ringBell(); else if (r.tap) pressTap(r.tap); else if (r.cat) petCat();
 }
+function nearTarget(p){ return nearestItem(p, 0.14) || nearestDisp(p, 0.17); }
+// päris käe žest: rusikas või näpistus = haara, käsi lahti = lase lahti
+const J = (h, n) => h.hand.joints && h.hand.joints[n];
+function handGesture(h){
+  const w = J(h, 'wrist'), palm = J(h, 'middle-finger-metacarpal'), prox = J(h, 'middle-finger-phalanx-proximal'), it = J(h, 'index-finger-tip'), th = J(h, 'thumb-tip'), mt = J(h, 'middle-finger-tip'), rt = J(h, 'ring-finger-tip');
+  if (!w || !palm || !it || !th || !mt || !rt || !w.visible) return;
+  const P = palm.getWorldPosition(V3()), I = it.getWorldPosition(V3()), T = th.getWorldPosition(V3());
+  const curl = (I.distanceTo(P) + mt.getWorldPosition(V3()).distanceTo(P) + rt.getWorldPosition(V3()).distanceTo(P)) / 3, pinch = I.distanceTo(T);
+  // haarde punkt: näpistuses sõrmede vahel, muidu peopesa ees
+  const gp = pinch < 0.045 ? I.clone().add(T).multiplyScalar(0.5) : (prox ? prox.getWorldPosition(V3()) : P).lerp(P, 0.3);
+  h.handHolder.position.copy(gp); w.getWorldQuaternion(h.handHolder.quaternion);
+  const closed = curl < 0.068 || pinch < 0.026, open = curl > 0.085 && pinch > 0.045;
+  if (!h.gClosed && closed) { h.gClosed = true; if (mode === 'play' && !h.held && !h.hover) { if (pressNear(gp, h)) return; const item = nearestItem(gp, 0.14); if (item) grab(h, item); else { const d = nearestDisp(gp, 0.17); if (d) grab(h, spawnFrom(d, gp)); } } }
+  else if (h.gClosed && open) { h.gClosed = false; if (h.held) release(h); }
+  // näita, mida saaks haarata
+  const tgt = !h.held && mode === 'play' ? (nearestItem(gp, 0.14) || nearestDisp(gp, 0.17)) : null;
+  h.marker.visible = !!tgt; if (tgt) { (tgt.g.getWorldPosition ? tgt.g.getWorldPosition(h.marker.position) : h.marker.position.copy(tgt.pos())); if (tgt.pos) h.marker.position.y -= 0.05; h.marker.scale.setScalar(1 + Math.sin(performance.now() / 150) * 0.1); }
+}
 function pressNear(p, h){
   const bp = bell.getWorldPosition(V3()).add(V3(0, 0.05, 0)); if (bp.distanceTo(p) < 0.09) { ringBell(); pulse(h, 0.6, 60); return true; }
-  for (const t of taps) if (t.btn.getWorldPosition(V3()).distanceTo(p) < 0.07) { pressTap(t); pulse(h, 0.4, 40); return true; }
+  for (const t of [...taps, ...(up.ice ? iceTaps : [])]) if (t.btn.getWorldPosition(V3()).distanceTo(p) < 0.07) { pressTap(t); pulse(h, 0.4, 40); return true; }
   return false;
 }
-function spawnFrom(d, p){ sfx.pick(); return newItem(d.type, p.clone()); }
+function spawnFrom(d, p){ sfx.pick(); return newItem(d.type, p.clone(), d.extra && d.extra.flavor ? { flavor: d.extra.flavor } : {}); }
 function grab(h, it){
   for (const o of [...hands, mouseHand]) if (o.held === it) o.held = null;
   if (it.slot) { if (it.slot.kind === 'tap' && it.filling) return; freeSlot(it); }
   if (it.mat) { const m = it.mat; m.items.splice(m.items.indexOf(it), 1); it.mat = null; }
   h.held = it; it.held = h; it.rest = false; it.vel.set(0, 0, 0);
-  h.holder.attach(it.g); it.g.position.set(0, 0, 0); it.g.rotation.set(it.type === 'ext' ? -0.3 : 0, 0, 0);
+  (h.isHand ? h.handHolder : h.holder).attach(it.g); it.g.position.set(0, 0, 0); it.g.rotation.set(it.type === 'ext' ? -0.3 : 0, 0, 0);
   if (it.type === 'ext') it.g.rotation.set(-(Math.PI / 2 - 0.3), 0, 0);
   sfx.pick(); if (h.kind === 'xr') pulse(h, 0.3, 30);
   if (it.type === 'duck') sfx.squeak();
@@ -544,6 +588,8 @@ function trySnap(it){
   const tp = trash.getWorldPosition(V3()).add(V3(0, 0.62, 0)); if (Math.hypot(p.x - tp.x, p.z - tp.z) < 0.24 && p.y > tp.y - 0.25 && p.y < tp.y + 0.6) { trashIt(it); return true; }
   // pesad
   for (const s of SLOTS) { if (s.item || !s.accepts(it)) continue; const w = slotWorld(s); if (Math.hypot(p.x - w.x, p.z - w.z) < 0.11 && Math.abs(p.y - w.y) < 0.3) { putInSlot(it, s); if (s.kind === 'grill') { sfx.drop(); emit(w, V3(0, 0.3, 0), 0xffffff, 0.04, 0.6); } else sfx.plop(); return true; } }
+  // vorst kuklisse
+  if (it.type === 'sausage') for (const b of items) { if (b.type !== 'hdBun' || b.held || b.sausage || b.mat) continue; const q = b.g.getWorldPosition(V3()); if (Math.hypot(p.x - q.x, p.z - q.z) < 0.09 && p.y > q.y - 0.05 && p.y < q.y + 0.4) { freeSlot(it); it.onPlate = b; it.rest = true; it.vel.set(0, 0, 0); b.g.attach(it.g); it.g.position.set(0, 0.022, 0); it.g.rotation.set(0, 0, 0); b.sausage = it; b.stack.push(it); sfx.stack(); pop(q.clone().add(V3(0, 0.12, 0)), '🌭 Valmis!', '#2a9d8f'); return true; } }
   // taldrikule
   if (LAYER_H[it.type]) for (const pl of items) { if (pl.type !== 'plate' || pl === it || pl.held || pl.mat) continue; const q = pl.g.getWorldPosition(V3()); if (Math.hypot(p.x - q.x, p.z - q.z) < 0.1 && p.y > q.y - 0.05 && p.y < q.y + 0.4) { addToPlate(pl, it); return true; } }
   // matile (kliendile)
@@ -591,8 +637,8 @@ function updatePhysics(dt){
    ========================================================= */
 function ringBell(){ sfx.ding(); bell.scale.setScalar(1.15); setTimeout(() => bell.scale.setScalar(1), 120); if (mode === 'play') { let n = 0; for (const c of custs) if (c.here && c.patience > 0) { c.patience = Math.min(c.maxP, c.patience + c.maxP * 0.05); n++; } if (n) showToast('🔔 Ding! Kliendid naeratavad', '#ffb347', 1.2); } }
 function pressTap(t){
-  const s = t.slot, cup = s.item; t.btn.position.x = -0.1; setTimeout(() => t.btn.position.x = -0.11, 150);
-  if (!cup) { sfx.click(); emit(slotWorld(s).add(V3(0, 0.2, 0)), V3(0, -1, 0), t.f.c, 0.02, 0.4, -4); showToast('Pane tops kraani alla! 🥤', '#ffb347', 1.3); return; }
+  const s = t.slot, cup = s.item; if (t.ice) { t.btn.scale.setScalar(0.85); setTimeout(() => t.btn.scale.setScalar(1), 150); } else { t.btn.position.x = -0.1; setTimeout(() => t.btn.position.x = -0.11, 150); }
+  if (!cup) { sfx.click(); emit(slotWorld(s).add(V3(0, 0.2, 0)), V3(0, -1, 0), t.f.c, 0.02, 0.4, -4); showToast(t.ice ? 'Pane vahvel masina alla! 🍦' : 'Pane tops kraani alla! 🥤', '#ffb347', 1.3); return; }
   if (cup.flavor || cup.filling) return;
   cup.filling = 1.4; cup.fillFlavor = t.f; sfx.pour();
 }
@@ -622,6 +668,7 @@ function updateCooking(dt){
   // tops kraani all
   for (const it of items) if (it.filling > 0) {
     it.filling -= dt; const w = it.g.getWorldPosition(V3()); emit(w.clone().add(V3(0, 0.15, 0)), V3(rand(-0.02, 0.02), -1.2, rand(-0.02, 0.02)), it.fillFlavor.c, 0.025, 0.12);
+    if (it.filling <= 0 && it.type === 'cone') { it.filling = 0; it.flavor = it.fillFlavor; it.g.userData.scoop.material = std(it.flavor.c); it.g.userData.scoop.visible = true; tone(1175, 0.1, 'triangle', 0.1); pop(w.clone().add(V3(0, 0.15, 0)), `🍦 ${it.flavor.n}`, '#2a9d8f'); continue; }
     if (it.filling <= 0) { it.filling = 0; it.flavor = it.fillFlavor; it.g.userData.band.material = std(it.flavor.c); it.g.userData.lid.visible = true; it.g.userData.straw.visible = true; tone(1175, 0.1, 'triangle', 0.1); pop(w.clone().add(V3(0, 0.15, 0)), `${it.flavor.e} ${it.flavor.n}`, '#2a9d8f'); }
   }
   if (sizzleG) { sizzleG.gain.setTargetAtTime(mode === 'play' ? Math.min(0.25, sizz * 0.07) : 0, actx.currentTime, 0.1); fryG.gain.setTargetAtTime(mode === 'play' ? Math.min(0.2, fry * 0.08) : 0, actx.currentTime, 0.1); }
@@ -641,37 +688,43 @@ function updateCooking(dt){
 let day = null;
 function allowedExtras(){ const d = save.day, D = diff(); const a = ['cheese']; if (d >= 2 || D.id === 0) a.push('lettuce'); if (d >= 2) a.push('tomato'); return a; }
 function genOrder(kind){
-  const D = diff(), dd = save.day, ex = allowedExtras(), n = Math.min(D.extras, Math.floor(rand(0, Math.min(D.extras, 1 + dd * 0.5) + 1)));
-  const middle = ['patty']; for (let i = 0; i < n; i++) middle.push(pick(ex));
-  if (D.id === 3 && Math.random() < 0.25) middle.push('patty');
-  const o = { burger: middle, fries: (dd >= 2 || D.id === 0) && Math.random() < D.fries, drink: (dd >= 3 || D.id === 0 || D.id === 3) && Math.random() < D.drink ? pick(FLAVORS) : null };
-  if (kind === 'kid' || D.id === 0 && Math.random() < 0.3) { o.burger = Math.random() < 0.5 ? ['patty'] : ['patty', 'cheese']; }
-  return o;
+  const D = diff(), dd = save.day, ex = allowedExtras(), reqs = [], maxItems = D.id === 0 || kind === 'kid' ? 2 : D.id === 1 ? 3 : 4;
+  const mains = ['burger']; if (up.hotdog) mains.push('hotdog', 'hotdog');
+  const main = kind === 'kid' && (up.ice || up.donut) && Math.random() < 0.3 ? null : pick(mains);
+  if (main === 'burger') { const n = Math.min(D.extras, Math.floor(rand(0, Math.min(D.extras, 1 + dd * 0.5) + 1))); const mid = ['patty']; for (let i = 0; i < n; i++) mid.push(pick(ex)); if (D.id === 3 && Math.random() < 0.25) mid.push('patty'); if (kind === 'kid' || D.id === 0) mid.splice(1 + Math.floor(Math.random() * 2)); reqs.push({ k: 'burger', mid }); }
+  if (main === 'hotdog') reqs.push({ k: 'hotdog' });
+  const extras = [];
+  if (Math.random() < D.fries) extras.push({ k: 'fries' });
+  if (Math.random() < D.drink) extras.push({ k: 'drink', f: pick(FLAVORS) });
+  if (up.ice && Math.random() < (main ? 0.4 : 1)) extras.push({ k: 'ice', f: pick(ICES) });
+  if (up.donut && Math.random() < 0.4) extras.push({ k: 'donut', f: pick(DONUTS) });
+  for (const e of extras.sort(() => Math.random() - 0.5)) if (reqs.length < maxItems) reqs.push(e);
+  if (!reqs.length) reqs.push({ k: 'fries' });
+  return { reqs };
 }
 function spawnCustomer(slotI){
   const r = Math.random(), kind = r < 0.1 ? 'vip' : r < 0.2 ? 'robot' : r < 0.28 ? 'cat' : r < 0.4 ? 'kid' : 'normal';
   const m = makeCustomer(kind); const side = Math.random() < 0.5 ? -1 : 1;
   if (kind === 'kid') m.g.scale.setScalar(0.75);
   const maxP = diff().patience * (up.calm ? 1.35 : 1) * (kind === 'vip' ? 0.8 : 1);
-  const c = { m, kind, slot: slotI, x: side * 3.2, tx: MAT_X[slotI], z: -1.75, state: 'in', order: genOrder(kind), patience: maxP, maxP, got: { burger: false, fries: false, drink: false }, here: false, hitCd: 0, t: 0 };
+  const c = { m, kind, slot: slotI, x: side * 3.2, tx: MAT_X[slotI], z: -1.75, state: 'in', order: genOrder(kind), patience: maxP, maxP, here: false, hitCd: 0, t: 0 };
   m.g.position.set(c.x, 0, c.z); mats[slotI].cust = c; custs.push(c); drawBubble(c); return c;
 }
-function needs(c){ const o = c.order; return { burger: !c.got.burger, fries: o.fries && !c.got.fries, drink: o.drink && !c.got.drink }; }
+function needs(c){ return c.order.reqs.filter(r => !r.done); }
 const LAYER_COL = { bunB: '#e0a65a', bunT: '#d99549', patty: '#7a4a2e', cheese: '#ffc93c', lettuce: '#6abe45', tomato: '#e63946' };
 function drawBubble(c){
-  const o = c.order, n = needs(c), pr = clamp(c.patience / c.maxP, 0, 1);
+  const reqs = c.order.reqs, pr = clamp(c.patience / c.maxP, 0, 1);
   c.m.bubble.draw((ctx, W, H) => {
     roundRect(ctx, 6, 6, W - 12, H * 0.78, 40); ctx.fillStyle = '#fffaf3'; ctx.fill(); ctx.lineWidth = 8; ctx.strokeStyle = c.kind === 'vip' ? '#ffd700' : '#ff8fab'; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(W * 0.45, H * 0.78); ctx.lineTo(W * 0.5, H * 0.92); ctx.lineTo(W * 0.55, H * 0.78); ctx.fillStyle = '#fffaf3'; ctx.fill();
-    // burgeri virn
-    const bx = W * 0.22, layers = ['bunB', ...o.burger, 'bunT']; let y = H * 0.62;
-    layers.forEach(L => { const h = L === 'bunT' ? 34 : L === 'bunB' ? 22 : L === 'patty' ? 18 : 10, w = L === 'cheese' ? 120 : 110; ctx.fillStyle = LAYER_COL[L]; roundRect(ctx, bx - w / 2, y - h, w, h, L === 'bunT' ? 16 : 5); ctx.fill(); y -= h + 2; });
-    if (!n.burger) txt(ctx, '✔', bx + 70, H * 0.2, H * 0.14, '#2a9d8f');
-    let x = W * 0.48;
-    if (o.fries) { txt(ctx, '🍟', x, H * 0.38, H * 0.2); if (!n.fries) txt(ctx, '✔', x + 30, H * 0.2, H * 0.12, '#2a9d8f'); x += W * 0.2; }
-    if (o.drink) { txt(ctx, '🥤', x, H * 0.33, H * 0.18); ctx.fillStyle = '#' + new THREE.Color(o.drink.c).getHexString(); ctx.beginPath(); ctx.arc(x, H * 0.58, H * 0.06, 0, 7); ctx.fill(); if (!n.drink) txt(ctx, '✔', x + 30, H * 0.2, H * 0.12, '#2a9d8f'); }
-    if (c.kind === 'vip') txt(ctx, '👑', W * 0.92, H * 0.15, H * 0.12);
-    // kannatus
+    const cw = (W - 40) / Math.max(2, reqs.length);
+    reqs.forEach((r, i) => {
+      const cx = 20 + cw * (i + 0.5);
+      if (r.k === 'burger') { const layers = ['bunB', ...r.mid, 'bunT']; let y = H * 0.66; const sc = Math.min(1, cw / 130); layers.forEach(L => { const h = (L === 'bunT' ? 30 : L === 'bunB' ? 20 : L === 'patty' ? 16 : 9) * sc, w = (L === 'cheese' ? 112 : 100) * sc; ctx.fillStyle = LAYER_COL[L]; roundRect(ctx, cx - w / 2, y - h, w, h, L === 'bunT' ? 14 * sc : 4); ctx.fill(); y -= h + 2; }); }
+      else { const em = { fries: '🍟', drink: '🥤', hotdog: '🌭', ice: '🍦', donut: '🍩' }[r.k]; txt(ctx, em, cx, H * 0.36, H * 0.22); if (r.f) { ctx.fillStyle = '#' + new THREE.Color(r.f.c).getHexString(); ctx.beginPath(); ctx.arc(cx, H * 0.62, H * 0.055, 0, 7); ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = '#3d2c3e'; ctx.stroke(); } }
+      if (r.done) { ctx.fillStyle = 'rgba(42,157,143,0.25)'; roundRect(ctx, cx - cw / 2 + 4, 16, cw - 8, H * 0.6, 20); ctx.fill(); txt(ctx, '✔', cx, H * 0.38, H * 0.25, '#2a9d8f', '900'); }
+    });
+    if (c.kind === 'vip') txt(ctx, '👑', W * 0.93, H * 0.12, H * 0.11);
     ctx.fillStyle = '#e0d6cc'; roundRect(ctx, W * 0.1, H * 0.86, W * 0.8, H * 0.1, 12); ctx.fill();
     ctx.fillStyle = pr > 0.5 ? '#2a9d8f' : pr > 0.25 ? '#ffb347' : '#e63946'; roundRect(ctx, W * 0.1, H * 0.86, Math.max(24, W * 0.8 * pr), H * 0.1, 12); ctx.fill();
   });
@@ -681,30 +734,36 @@ function matchBurger(pl, order){
   const s = pl.stack; if (s.length < 2) return 'Burger pole valmis!';
   if (s[0].type !== 'bunB') return 'Põhjakukkel puudub!'; if (s[s.length - 1].type !== 'bunT') return 'Kaanekukkel puudub!';
   const mid = s.slice(1, -1); if (mid.some(x => x.type === 'patty' && x.state === 'raw')) return '🤢 Toores kotlet!'; if (mid.some(x => x.type === 'patty' && x.state === 'burnt')) return '🤢 Kõrbenud kotlet!';
-  const a = mid.map(x => x.type).sort().join(), b = order.burger.slice().sort().join(); if (a !== b) return 'Vale burger! Vaata tellimust.';
+  const a = mid.map(x => x.type).sort().join(), b = order.mid.slice().sort().join(); if (a !== b) return 'Vale burger! Vaata tellimust.';
   return null;
 }
 function serve(m, it){
   const c = m.cust; const q = m.mesh.getWorldPosition(V3());
   if (!c || c.state !== 'wait') { sfx.wrong(); showToast('Siin pole klienti 🙂', '#ffb347', 1.2); bounceBack(it); return; }
-  const n = needs(c); let err = null, what = null;
-  if (it.type === 'plate') { if (!n.burger) err = 'Burger on mul juba olemas!'; else { err = matchBurger(it, c.order); what = 'burger'; } }
-  else if (it.type === 'fries') { if (!n.fries) err = 'Friikaid ma ei tellinud!'; else if (it.state === 'burnt') err = '🤢 Kõrbenud friikad!'; else what = 'fries'; }
-  else if (it.type === 'cup') { if (!n.drink) err = 'Jooki ma ei tellinud!'; else if (!it.flavor) err = 'Tops on tühi!'; else if (it.flavor !== c.order.drink) err = `Ma tahtsin ${c.order.drink.n}!`; else what = 'drink'; }
-  else if (LAYER_H[it.type]) err = 'Pane see taldrikule! 🍽️';
-  else err = 'Mida see on? 😅';
+  const n = needs(c), kindOf = { plate: 'burger', fries: 'fries', cup: 'drink', hdBun: 'hotdog', cone: 'ice', donut: 'donut' }[it.type];
+  const NAMEK = { burger: 'Burgerit', fries: 'Friikaid', drink: 'Jooki', hotdog: 'Hotdogi', ice: 'Jäätist', donut: 'Sõõrikut' };
+  let err = null, req = null;
+  if (!kindOf) err = LAYER_H[it.type] ? 'Pane see taldrikule! 🍽️' : it.type === 'sausage' ? 'Pane vorst kuklisse! 🌭' : 'Mida see on? 😅';
+  else {
+    const cand = n.filter(r => r.k === kindOf);
+    if (!cand.length) err = `${NAMEK[kindOf]} ma ei tellinud!`;
+    else if (kindOf === 'burger') { err = matchBurger(it, cand[0]); req = cand[0]; }
+    else if (kindOf === 'fries') { if (it.state === 'burnt') err = '🤢 Kõrbenud friikad!'; else req = cand[0]; }
+    else if (kindOf === 'hotdog') { if (!it.sausage) err = 'Vorst puudub! 🌭'; else if (it.sausage.state === 'raw') err = '🤢 Toores vorst!'; else if (it.sausage.state === 'burnt') err = '🤢 Kõrbenud vorst!'; else req = cand[0]; }
+    else { if (!it.flavor) err = kindOf === 'drink' ? 'Tops on tühi!' : 'Jäätis puudub!'; else { req = cand.find(r => r.f === it.flavor); if (!req) err = `Ma tahtsin ${cand[0].f.n}!`; } }
+  }
   if (err) { sfx.wrong(); showToast(`${c.kind === 'robot' ? '🤖 ' : ''}${err}`, '#e63946', 2); c.patience -= c.maxP * 0.06; bounceBack(it); emote(c, 'sad'); return; }
-  c.got[what] = true; it.mat = m; m.items.push(it); it.rest = true; it.vel.set(0, 0, 0);
-  it.g.position.set(q.x + (m.items.length - 2) * 0.13, q.y + it.hh + 0.004, q.z); it.g.rotation.set(0, 0, 0);
+  req.done = true; it.mat = m; m.items.push(it); it.rest = true; it.vel.set(0, 0, 0);
+  const k = m.items.length - 1; it.g.position.set(q.x - 0.15 + (k % 4) * 0.1, q.y + it.hh + 0.004, q.z + (k >= 4 ? 0.08 : 0)); it.g.rotation.set(0, 0, 0);
   sfx.stack(); emote(c, 'happy'); drawBubble(c);
-  const nn = needs(c); if (!nn.burger && !nn.fries && !nn.drink) finishCustomer(c, true);
+  if (!needs(c).length) finishCustomer(c, true);
 }
 function emote(c, kind){ c.emote = kind; c.emoteT = 1; }
 function finishCustomer(c, happy){
   c.state = 'out'; c.m.bubble.mesh.visible = false; const hp = c.m.headG.getWorldPosition(V3()).add(V3(0, 0.3, 0));
   if (happy) {
     const pr = clamp(c.patience / c.maxP, 0, 1), o = c.order;
-    let pay = 5 + o.burger.length * 2 + (o.fries ? 3 : 0) + (o.drink ? 2 : 0); const tip = Math.round(pr * 5 * (up.disco ? 1.4 : 1)); pay += tip; if (c.kind === 'vip') pay *= 2;
+    const PRICE = { fries: 3, drink: 2, hotdog: 8, ice: 5, donut: 3 }; let pay = o.reqs.reduce((a, r) => a + (r.k === 'burger' ? 5 + r.mid.length * 2 : PRICE[r.k]), 0); const tip = Math.round(pr * 5 * (up.disco ? 1.4 : 1)); pay += tip; if (c.kind === 'vip') pay *= 2;
     day.earned += pay; save.coins += pay; day.served++; persist();
     pop(hp, `+${pay} 🪙`, '#e6a100'); sfx.coin(); sfx.happy(); burst(hp, 0xff4fa3, 16, 0.8, 0.05); c.hearts = 1.5;
     if (c.kind === 'vip') showToast('👑 VIP oli väga rahul! Topelt raha!', '#e6a100', 2);
@@ -772,7 +831,7 @@ function startDay(){
   showToast(`📅 Päev ${save.day} – eesmärk ${day.goal} 🪙! ${save.day === 1 ? 'Kliendid tulevad leti taha 👀' : save.day === 2 ? 'UUS: 🍟 friikad ja 🥬🍅!' : save.day === 3 ? 'UUS: 🥤 joogid!' : ''}`, '#e63946', 3.5);
 }
 function endDay(){
-  mode = 'end'; for (const c of custs) if (c.state === 'wait') { c.state = 'out'; c.m.bubble.mesh.visible = false; c.tx = c.x > 0 ? 3.4 : -3.4; mats[c.slot].cust = null; }
+  mode = 'end'; toast.mesh.visible = false; toastT = 0; for (const c of custs) if (c.state === 'wait') { c.state = 'out'; c.m.bubble.mesh.visible = false; c.tx = c.x > 0 ? 3.4 : -3.4; mats[c.slot].cust = null; }
   const D = diff(), ok = day.earned >= day.goal, stars = day.earned >= day.goal * 1.5 ? 3 : ok ? 2 : day.served > 0 ? 1 : 0;
   lastSummary = { day: save.day, earned: day.earned, goal: day.goal, served: day.served, angry: day.angry, ok, stars };
   if (!save.best[save.diff] || day.earned > save.best[save.diff]) save.best[save.diff] = day.earned;
@@ -801,8 +860,9 @@ function updateHands(dt){
   const setHover = (h, b) => { if (h.hover === b) return; if (h.hover) { h.hover.hover = false; h.hover.draw(); } h.hover = b; if (b) { b.hover = true; b.draw(); } };
   const ui = mode !== 'play';
   for (const h of hands) {
-    h.ray.visible = false; if (!h.connected) { setHover(h, null); continue; }
+    h.ray.visible = false; if (!h.connected) { setHover(h, null); h.marker.visible = false; continue; }
     const p = handPoint(h, V3()); if (h.hasPrev) h.vel.lerp(tmpD.copy(p).sub(h.prev).divideScalar(Math.max(dt, 1e-3)), 0.5); h.prev.copy(p); h.hasPrev = true;
+    if (h.isHand) handGesture(h); else h.marker.visible = false;
     if (h.isHand && !h.colored) { const mc = h.hm.motionController, m = mc && mc.handMesh; if (m && m.material) { m.material.color.set(0xffffff); if (m.material.emissive) m.material.emissive.set(0x553344); h.colored = true; } }
     if (btnMeshes.length) {
       h.ctrl.getWorldPosition(tmpV); h.ctrl.getWorldQuaternion(tmpQ); raycaster.set(tmpV, tmpD.set(0, 0, -1).applyQuaternion(tmpQ)); raycaster.far = 5;
@@ -813,7 +873,7 @@ function updateHands(dt){
     if (h.isHand && h.hand.joints && h.hand.joints['index-finger-tip']) {
       const tip = h.hand.joints['index-finger-tip'].getWorldPosition(V3()); let touched = null;
       for (const m of btnMeshes) { if (m === wristBtn.p.mesh && h.side === 'left') continue; const lp = m.worldToLocal(tip.clone()), b = m.userData.btn; if (Math.abs(lp.x) < b.w / 2 && Math.abs(lp.y) < b.h / 2 && Math.abs(lp.z) < 0.025) { touched = b; break; } }
-      if (!touched && mode === 'play') { if (bell.getWorldPosition(V3()).add(V3(0, 0.05, 0)).distanceTo(tip) < 0.06) touched = 'bell'; for (const t of taps) if (t.btn.getWorldPosition(V3()).distanceTo(tip) < 0.045) touched = t; }
+      if (!touched && mode === 'play') { if (bell.getWorldPosition(V3()).add(V3(0, 0.05, 0)).distanceTo(tip) < 0.06) touched = 'bell'; for (const t of [...taps, ...(up.ice ? iceTaps : [])]) if (t.btn.getWorldPosition(V3()).distanceTo(tip) < 0.045) touched = t; }
       if (touched && h.poke !== touched) { if (touched === 'bell') ringBell(); else if (touched.slot) pressTap(touched); else clickBtn(touched, h); pulse(h, 0.4, 30); }
       h.poke = touched;
     }
@@ -847,7 +907,7 @@ renderer.setAnimationLoop(() => {
   if (!renderer.xr.isPresenting) {
     if (keys.KeyA || keys.ArrowLeft) deskYaw += dt * 1.6; if (keys.KeyD || keys.ArrowRight) deskYaw -= dt * 1.6;
     if (keys.KeyW || keys.ArrowUp) deskPitch += dt * 1.2; if (keys.KeyS || keys.ArrowDown) deskPitch -= dt * 1.2;
-    deskYaw = clamp(deskYaw, -1.6, 1.6); deskPitch = clamp(deskPitch, -1.1, 0.4); camera.rotation.set(deskPitch, deskYaw, 0, 'YXZ');
+     deskPitch = clamp(deskPitch, -1.1, 0.4); camera.rotation.set(deskPitch, deskYaw, 0, 'YXZ');
   }
   if (mode === 'play') {
     day.t += dt; music(); updateCooking(dt); updateCustomers(dt); updatePhysics(dt); drawHud();
@@ -863,7 +923,7 @@ renderer.setAnimationLoop(() => {
   pMat.uniforms.uScale.value = renderer.xr.isPresenting ? 900 : renderer.domElement.height / 2 * camera.projectionMatrix.elements[5];
   renderer.render(scene, camera);
 });
-window.__kk = { startDay, endDay, goMenu, items, custs, mats, SLOTS, DISP, newItem, addToPlate, serve, trySnap, get day(){ return day; }, save, diff, spawnCustomer, K, putInSlot, pressTap, taps, up, applyUpgrades, mouseHand, grab, release };
+window.__kk = { iceTaps, genOrder, startDay, endDay, goMenu, items, custs, mats, SLOTS, DISP, newItem, addToPlate, serve, trySnap, get day(){ return day; }, save, diff, spawnCustomer, K, putInSlot, pressTap, taps, up, applyUpgrades, mouseHand, grab, release };
 </script>
 </body>
 </html>
